@@ -1,0 +1,21 @@
+{
+  "name": "anchorgit",
+  "version": "0.1.0",
+  "description": "Cryptographic decision logging and human steering for Git.",
+  "main": "dist/index.js",
+  "bin": {
+    "anchor": "bin/anchor.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node bin/anchor.js"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
