@@ -1,5 +1,6 @@
 import { getLocalGitStats } from '../core/git.js';
 import { sendDecision } from '../api/client.js';
+import { computeHmacSignature } from '../core/crypto.js';
 
 interface DecideOptions {
   dryRun?: boolean;
@@ -19,9 +20,17 @@ export async function handleDecide(message: string, options: DecideOptions): Pro
       diff_sha256: gitStats.diffHash,
     };
 
+    // Computes HMAC signature dynamically from hardware-derived secret
+    const hmacSignature = computeHmacSignature(payload);
+
+    const fullPayload = {
+      ...payload,
+      hmac_signature: hmacSignature,
+    };
+
     if (options.dryRun) {
-      console.log('\n🔍 [DRY RUN] Inspected Payload (Zero code transmitted):\n');
-      console.log(JSON.stringify(payload, null, 2));
+      console.log('\n🔍 [DRY RUN] Zero-Knowledge Hardware-Bound Payload:');
+      console.log(JSON.stringify(fullPayload, null, 2));
       console.log('\n✅ Payload verified. No source code or secrets present.\n');
       return;
     }
@@ -30,13 +39,15 @@ export async function handleDecide(message: string, options: DecideOptions): Pro
     console.log(`   ├─ Intent: "${message}"`);
     console.log(`   ├─ Scope:  ${gitStats.commitSha.substring(0, 7)} (${gitStats.branch}) | +${gitStats.linesAdded} / -${gitStats.linesDeleted} LOC`);
     console.log(`   └─ Proof:  SHA-256 (${gitStats.diffHash.substring(0, 12)}...)`);
-    console.log(`\n🔒 Security Check: Zero source code was transmitted. Only line stats and cryptographic hash were processed.`);
+    console.log(`   └─ HMAC Sign: ${hmacSignature.substring(0, 16)}... [Hardware Bound]`);
+
+    console.log(`\n🔒 Security Check: Zero source code transmitted. Signed via workstation hardware fingerprint.`);
 
     // Transmit zero-knowledge metadata payload to API
-    await sendDecision(payload);
+    await sendDecision(fullPayload);
     console.log('');
   } catch (err: any) {
-    console.error(`❌ Error: ${err.message}`);
+    console.error(`❌ Error recording decision: ${err.message}`);
     process.exit(1);
   }
 }
