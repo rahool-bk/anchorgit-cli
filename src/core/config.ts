@@ -1,9 +1,6 @@
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
-
-const CONFIG_DIR = path.join(os.homedir(), '.anchorgit');
-const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
 
 export interface AnchorConfig {
   apiKey?: string;
@@ -13,18 +10,20 @@ export interface AnchorConfig {
   pairedAt?: string;
 }
 
-const CONFIG_PATH = path.join(os.homedir(), '.anchor', 'config.json');
+const CONFIG_DIR = path.join(os.homedir(), '.anchor');
+const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
 
 export function getConfig(): AnchorConfig {
-  if (!fs.existsSync(CONFIG_PATH)) {
+  if (!fs.existsSync(CONFIG_FILE)) {
     return {
       apiUrl: process.env.ANCHORGIT_API_URL || 'https://api.anchorgit.com',
     };
   }
 
   try {
-    const raw = fs.readFileSync(CONFIG_PATH, 'utf-8');
-    const parsed = JSON.parse(raw);
+    const rawData = fs.readFileSync(CONFIG_FILE, 'utf-8');
+    const parsed = JSON.parse(rawData);
+
     return {
       apiKey: parsed.apiKey,
       apiUrl: process.env.ANCHORGIT_API_URL || parsed.apiUrl || 'https://api.anchorgit.com',
@@ -39,15 +38,20 @@ export function getConfig(): AnchorConfig {
   }
 }
 
-export function saveConfig(config: Partial<AnchorConfig>): void {
+export function saveConfig(newConfig: Partial<AnchorConfig>): void {
   try {
     if (!fs.existsSync(CONFIG_DIR)) {
       fs.mkdirSync(CONFIG_DIR, { recursive: true });
     }
-    const existing = getConfig();
-    const updated = { ...existing, ...config };
-    fs.writeFileSync(CONFIG_FILE, JSON.stringify(updated, null, 2), 'utf-8');
+
+    const currentConfig = getConfig();
+    const updatedConfig: AnchorConfig = {
+      ...currentConfig,
+      ...newConfig,
+    };
+
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify(updatedConfig, null, 2), 'utf-8');
   } catch (err: any) {
-    throw new Error(`Failed to save config: ${err.message}`);
+    throw new Error(`Failed to save configuration: ${err.message}`);
   }
 }

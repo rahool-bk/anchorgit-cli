@@ -39,8 +39,10 @@ function saveToLocalLedger(entry: any): void {
 export async function handleDecide(message: string, options: DecideOptions): Promise<void> {
   try {
     const gitStats = getLocalGitStats();
+    const config = getConfig();
 
     const payload = {
+      workstation_guid: config.workstationGuid, // MUST BE INCLUDED
       timestamp: new Date().toISOString(),
       decision_summary: message,
       commit_sha: gitStats.commitSha,
@@ -69,8 +71,6 @@ export async function handleDecide(message: string, options: DecideOptions): Pro
     // 1. Save Locally to ~/.anchor/ledger.json
     saveToLocalLedger(fullPayload);
 
-    const config = getConfig();
-
     console.log(`\n⚓ AnchorGit Decision Recorded!`);
     console.log(`   ├─ Intent:     "${message}"`);
     console.log(`   ├─ Scope:      ${gitStats.commitSha.substring(0, 7)} (${gitStats.branch}) | +${gitStats.linesAdded} / -${gitStats.linesDeleted} LOC`);
@@ -87,7 +87,7 @@ export async function handleDecide(message: string, options: DecideOptions): Pro
       console.log(`   👉 anchor pair <your-api-key>\n`);
     }
 
-    // 2. Cloud Sync (sendDecision handles its own logging status cleanly)
+    // 2. Cloud Sync (Wrapped under { decision: ... } for Rails strong parameters)
     await sendDecision(fullPayload);
 
     process.exit(0);

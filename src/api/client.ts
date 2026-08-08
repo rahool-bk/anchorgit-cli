@@ -14,14 +14,15 @@ export interface DecisionPayload {
 export async function sendDecision(payload: DecisionPayload): Promise<boolean> {
   const config = getConfig();
 
-  // If no API key is configured, cleanly exit local mode
+  // If the user hasn't run `anchor pair <api-key>`, skip cloud sync silently
   if (!config.apiKey) {
-    console.log('\n🔒 Local Notary Mode Active: Decision saved to ~/.anchor/ledger.json');
-    console.log('   (Run `anchor pair <key>` when you want to sync with a team dashboard)\n');
+    console.log(`🔒 Local Notary Mode Active: Decision saved to ~/.anchor/ledger.json`);
+    console.log(`💡 Tip: Pair your workstation to sync with your web dashboard:`);
+    console.log(`   👉 anchor pair <your-api-key>\n`);
     return false;
   }
 
-  const apiUrl = config.apiUrl || 'https://api.anchorgit.com';
+  const apiUrl = config.apiUrl || process.env.ANCHORGIT_API_URL || 'https://api.anchorgit.com';
 
   try {
     const response = await fetch(`${apiUrl}/v1/decide`, {
@@ -38,7 +39,8 @@ export async function sendDecision(payload: DecisionPayload): Promise<boolean> {
       throw new Error(`HTTP error ${response.status}`);
     }
 
-    console.log('\n✅ Synchronized with AnchorGit Cloud.\n');
+    console.log(`🌐 Cloud Sync Active: Decision notarized and synced with @${config.username || 'developer'}`);
+    console.log(`   👉 https://anchorgit.com/p/${config.username || 'developer'}\n`);
     return true;
   } catch (error: any) {
     console.log('\nℹ️  Cloud Sync Skipped: Backend API currently offline or unreachable.');

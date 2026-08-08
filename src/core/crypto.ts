@@ -85,6 +85,11 @@ export interface SignaturePayloadInput {
  */
 export function computeHmacSignature(payload: SignaturePayloadInput): string {
   const hardwareSecretBuffer = getHardwareDerivedSecret();
+  const workstationGuid = hardwareSecretBuffer.toString('hex').substring(0, 32);
+  const derivedKeyString = crypto
+    .createHash('sha256')
+    .update(`${workstationGuid}::anchorgit-hardware-salt-v1`)
+    .digest('hex');
 
   const canonicalString = [
     payload.commit_sha,
@@ -98,9 +103,9 @@ export function computeHmacSignature(payload: SignaturePayloadInput): string {
 
   const canonicalBuffer = Buffer.from(canonicalString, 'utf-8');
 
-  // Compute HMAC signature using hardware-bound secret buffer
+  // Compute HMAC signature using hardware-bound secret string
   const signature = crypto
-    .createHmac('sha256', hardwareSecretBuffer)
+    .createHmac('sha256', derivedKeyString)
     .update(canonicalBuffer)
     .digest('hex');
 
