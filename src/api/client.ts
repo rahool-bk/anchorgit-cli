@@ -8,16 +8,17 @@ export interface DecisionPayload {
   lines_added: number;
   lines_deleted: number;
   diff_sha256: string;
+  affected_files?: string[];
 }
 
-export async function sendDecision(payload: DecisionPayload): Promise<void> {
+export async function sendDecision(payload: DecisionPayload): Promise<boolean> {
   const config = getConfig();
 
-  // If no API key is set, stay in local offline mode cleanly without calling fetch
+  // If no API key is configured, cleanly exit local mode
   if (!config.apiKey) {
-    console.log('🔒 Local Notary Mode Active: Decision logged locally.');
-    console.log('   (To sync with team dashboards in the future, run `anchor pair <key>`)\n');
-    return;
+    console.log('\n🔒 Local Notary Mode Active: Decision saved to ~/.anchor/ledger.json');
+    console.log('   (Run `anchor pair <key>` when you want to sync with a team dashboard)\n');
+    return false;
   }
 
   const apiUrl = config.apiUrl || 'https://api.anchorgit.com';
@@ -34,14 +35,14 @@ export async function sendDecision(payload: DecisionPayload): Promise<void> {
     });
 
     if (!response.ok) {
-      throw new Error(`Server returned HTTP ${response.status}`);
+      throw new Error(`HTTP error ${response.status}`);
     }
 
-    const data = await response.json();
-    console.log('✅ Synchronized with AnchorGit Cloud:', data.status || 'OK\n');
+    console.log('\n✅ Synchronized with AnchorGit Cloud.\n');
+    return true;
   } catch (error: any) {
-    // Graceful offline fallback without raw stack traces
-    console.log('ℹ️  Cloud Sync Skipped: Backend API currently offline or unreachable.');
+    console.log('\nℹ️  Cloud Sync Skipped: Backend API currently offline or unreachable.');
     console.log('   (Local decision record saved successfully)\n');
+    return false;
   }
 }

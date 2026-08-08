@@ -2,12 +2,15 @@ import { Command } from 'commander';
 import { handleDecide } from './commands/decide.js';
 import { handlePair } from './commands/pair.js';
 import { handleStandup } from './commands/standup.js';
+import { handleContext } from './commands/context.js';
+import { handlePr } from './commands/pr.js';
+import { handleWhoami } from './commands/whoami.js';
 
 const program = new Command();
 
 program
   .name('anchor')
-  .description('Cryptographic decision logging and human steering for Git workflows.')
+  .description('AnchorGit - Zero-Knowledge Decision Ledger for Developers (Open Source)')
   .version('0.1.0')
   .addHelpText('after', `
 
@@ -44,10 +47,29 @@ program
   });
 
 program
+  .command('context [path]')
+  .description('Query historical decision context for a specific file or path')
+  .action((message) => {
+    handleContext(message);
+  });
+
+program
+  .command('pr')
+  .description('Generate an intent-first Pull Request Decision Brief for code reviewers')
+  .action(() => {
+    handlePr();
+  });
+
+program
   .command('standup')
-  .description('Generate a quick standup report of recent decision logs and engineering impact')
+  .description('Generate a 24-hour engineering impact summary from signed decision logs')
   .action(() => {
     handleStandup();
   });
+
+program
+  .command('whoami')
+  .description('Display currently paired developer identity and public profile link')
+  .action(handleWhoami);
 
 program.parse(process.argv);

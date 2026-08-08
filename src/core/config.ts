@@ -8,17 +8,34 @@ const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
 export interface AnchorConfig {
   apiKey?: string;
   apiUrl?: string;
+  username?: string;
+  workstationGuid?: string;
+  pairedAt?: string;
 }
 
+const CONFIG_PATH = path.join(os.homedir(), '.anchor', 'config.json');
+
 export function getConfig(): AnchorConfig {
+  if (!fs.existsSync(CONFIG_PATH)) {
+    return {
+      apiUrl: process.env.ANCHORGIT_API_URL || 'https://api.anchorgit.com',
+    };
+  }
+
   try {
-    if (!fs.existsSync(CONFIG_FILE)) {
-      return { apiUrl: 'https://api.anchorgit.com' };
-    }
-    const data = fs.readFileSync(CONFIG_FILE, 'utf-8');
-    return JSON.parse(data);
+    const raw = fs.readFileSync(CONFIG_PATH, 'utf-8');
+    const parsed = JSON.parse(raw);
+    return {
+      apiKey: parsed.apiKey,
+      apiUrl: process.env.ANCHORGIT_API_URL || parsed.apiUrl || 'https://api.anchorgit.com',
+      username: parsed.username || 'developer',
+      workstationGuid: parsed.workstationGuid,
+      pairedAt: parsed.pairedAt,
+    };
   } catch {
-    return { apiUrl: 'https://api.anchorgit.com' };
+    return {
+      apiUrl: process.env.ANCHORGIT_API_URL || 'https://api.anchorgit.com',
+    };
   }
 }
 

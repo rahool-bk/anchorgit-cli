@@ -1,45 +1,44 @@
-import { execSync } from 'child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
 
-function safeExec(command: string): string {
+const LEDGER_PATH = path.join(os.homedir(), '.anchor', 'ledger.json');
+
+export async function handleStandup() {
   try {
-    return execSync(command, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'ignore'] }).trim();
-  } catch {
-    return '';
-  }
-}
-
-export async function handleStandup(): Promise<void> {
-  try {
-    console.log('\n⚓ AnchorGit - Recent Engineering Impact & Decisions:\n');
-
-    // 1. Check if git repo exists
-    const isGitRepo = safeExec('git rev-parse --is-inside-work-tree');
-    if (isGitRepo !== 'true') {
-      console.log('   ❌ Not inside a Git repository. Run `git init` first.\n');
+    if (!fs.existsSync(LEDGER_PATH)) {
+      console.log('\n⚓ No decision history found. Run `anchor decide "..."` to start recording.');
       return;
     }
 
-    // 2. Fetch commit log safely
-    const log = safeExec('git log -n 5 --oneline');
+    const rawData = fs.readFileSync(LEDGER_PATH, 'utf-8');
+    const entries = JSON.parse(rawData);
 
-    if (log) {
-      const lines = log.split('\n');
-      lines.forEach((line) => {
-        console.log(`   • ${line}`);
+    // Filter decisions made in the last 24 hours
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const recent = entries.filter((e: any) => new Date(e.timestamp) >= oneDayAgo);
+
+    console.log(`\n📊 Yesterday's Signed Engineering Impact & Decisions:`);
+    console.log('═'.repeat(60));
+
+    if (recent.length === 0) {
+      console.log('   No architectural decisions notarized in the last 24 hours.');
+      console.log('   Showing last 3 overall decisions:\n');
+      entries.slice(-3).forEach((e: any) => {
+        console.log(`   • [${e.commit_sha.substring(0, 7)}] ${e.decision_summary} (+${e.lines_added}/-${e.lines_deleted} LOC)`);
       });
-    } else {
-      // Handle empty repo with zero commits
-      console.log('   🌱 Brand new repository (0 commits yet).');
-
-      const status = safeExec('git status --short');
-      if (status) {
-        console.log('\n   Uncommitted working directory changes:');
-        status.split('\n').forEach((file) => console.log(`     ${file}`));
-      }
+      return;
     }
 
-    console.log('\n💡 Tip: Run `anchor decide "your trade-off"` to attach signed architectural context.\n');
-  } catch (err: any) {
-    console.error(`❌ Error fetching standup log: ${err.message}`);
+    recent.forEach((e: any) => {
+      console.log(`   • [${e.commit_sha.substring(0, 7)}] ${e.decision_summary}`);
+      console.log(`     └─ Scope: +${e.lines_added} / -${e.lines_deleted} LOC | HMAC: ${e.hmac_signature.substring(0, 12)}...`);
+    });
+
+    console.log('═'.repeat(60));
+    console.log(`✨ Total Impact: ${recent.length} Notarized Architectural Decisions.`);
+
+  } catch (error: any) {
+    console.error(`❌ Error generating standup: ${error.message}`);
   }
 }
