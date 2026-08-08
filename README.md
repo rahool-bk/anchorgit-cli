@@ -1,160 +1,112 @@
 # ⚓ AnchorGit CLI (`anchorgit`)
 
-> **Local-First & Hardware-Signed Decision Notary for Git**  
-> AI writes code at lightspeed. AnchorGit proves **why** you built it.
+<p align="center">
+  <b>Local-first, zero-knowledge decision notary and human intent engine for Git workflows.</b>
+</p>
 
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-
-AnchorGit is a zero-knowledge developer tool that attaches verifiable intent, trade-offs, and human agency context to Git commits. It binds local commit diffs to your physical workstation using **hardware-derived HMAC signatures**, transforming raw Git commit history into audit-ready decision logs without ever exposing underlying source code.
-
----
-
-## 🔒 Enterprise Security & Zero-Knowledge Guarantee
-
-Chief Information Security Officers (CISOs) and security reviewers can audit this open-source repository directly to verify our zero-knowledge architecture.
-
-- **Zero Source Code Ingestion:** AnchorGit **never** reads, transmits, or stores your raw source code, file contents, or environment secrets.
-- **Local SHA-256 Hashing:** Raw code diffs are parsed strictly on your local workstation, hashed into SHA-256 strings (`diff_sha256`), and discarded immediately.
-- **Hardware-Bound HMAC Signatures:** Decision payloads are cryptographically signed using a local hardware salt combined with your workstation GUID, preventing commit forgery across machines.
-- **Auditable Payloads (`--dry-run`):** Developers and security teams can inspect the exact raw JSON object before any network call occurs.
-- **Corporate Proxy Support:** Fully respects standard system proxy configurations (`HTTP_PROXY`, `HTTPS_PROXY`) for outbound network monitoring via Wireshark, Burp Suite, or Zscaler.
+<p align="center">
+  <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License"></a>
+  <a href="https://www.npmjs.com/package/anchorgit"><img src="https://img.shields.io/badge/npm-v1.0.0-emerald.svg" alt="npm version"></a>
+  <a href="https://node.js.org"><img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg" alt="Node.js"></a>
+</p>
 
 ---
 
-## 🚀 Getting Started
+## 💡 Why AnchorGit?
 
-### Prerequisites
+AI writes code at lightspeed. **AnchorGit proves why you built it.**
 
-- **Node.js**: `v18.0.0` or higher
-- **Git**: Installed and configured on your local machine
+Git records *what* changed in your source code. AnchorGit notarizes *why* it changed—attaching verifiable trade-off rationale, architectural intent, and hardware-bound HMAC signatures to your commits **without ever exposing your raw source code**.
 
-### Installation
+```
+   ┌────────────────┐       ┌────────────────────┐       ┌──────────────────────┐
+   │ Local Git Diff │ ───►  │ Local SHA-256 Hash │ ───►  │ Hardware HMAC Sign   │
+   └────────────────┘       └────────────────────┘       └──────────┬───────────┘
+                                                                    │
+                                   Zero Source Code Transmitted     ▼
+                                                         ┌──────────────────────┐
+                                                         │ Cloud Decision Log   │
+                                                         └──────────────────────┘
+```
 
-Install globally via `npm`:
+---
+
+## ⚡ Quickstart
+
+### 1. Installation
+
+Install globally using `npm`:
 
 ```bash
 npm install -g anchorgit
 ```
 
-Or run directly without installation using `npx`:
+Or run directly with `npx`:
 
 ```bash
 npx anchorgit --help
 ```
 
----
+### 2. Pair Your Workstation
 
-## 💻 Usage & Commands
-
-### 1. Pair Your Workstation (`anchor pair`)
-
-Link your local CLI with your AnchorGit developer dashboard using your personal API key (`ag_live_*`):
+Authenticate your local CLI with your AnchorGit developer dashboard using your personal API key:
 
 ```bash
 anchor pair <YOUR_API_KEY>
 ```
 
-This derives your local hardware fingerprint, generates a secure salt, and persists credentials in `~/.anchor/config.json`.
+This derives a local hardware fingerprint, generates a secure salt, and persists config locally to `~/.anchor/config.json`.
+
+### 3. Record an Architectural Decision
+
+Log architectural trade-offs or steering decisions directly alongside your working directory changes:
+
+```bash
+anchor decide "Refactored auth token rotation to use Redis instead of in-memory store"
+```
 
 ---
 
-### 2. Notarize an Architectural Decision (`anchor decide`)
+## 💻 Command Reference
 
-Log architectural trade-offs, design choices, or AI-steering decisions directly alongside your working directory changes:
+| Command | Usage | Description |
+| :--- | :--- | :--- |
+| **`pair`** | `anchor pair <api-key>` | Binds workstation hardware fingerprint & persists API credentials. |
+| **`decide`** | `anchor decide "<message>"` | Hashes local diffs, signs payload via hardware HMAC, and syncs log. |
+| **`context`** | `anchor context` | Displays recent local architectural decisions to resume context. |
+| **`standup`** | `anchor standup` | Compiles recent decisions into a clean Markdown daily standup report. |
 
-```bash
-anchor decide "Refactored auth token rotation to use Redis instead of memory"
-```
+---
 
-#### Inspect Payload Locally (`--dry-run`)
+## 🛡️ Enterprise Security & Zero-Knowledge Guarantee
 
-To verify that zero source code leaves your workstation:
+Built for security-conscious teams, CISOs, and enterprise compliance:
+
+* **Zero Source Code Ingestion:** AnchorGit **never** reads, transmits, or stores raw source code or environment secrets.
+* **Local SHA-256 Hashing:** Diffs are parsed strictly on your local machine, hashed into `diff_sha256`, and discarded immediately.
+* **Hardware HMAC Signatures:** Decision payloads are cryptographically signed using your workstation CPU/board identity and salt to prevent machine impersonation.
+* **Inspect Payloads (`--dry-run`):** Inspect the exact JSON output before any network call occurs:
 
 ```bash
 anchor decide "Auditing security payload" --dry-run
 ```
 
-**Sample Output Payload:**
 ```json
 {
   "workstation_guid": "7bfd571acc9886bc3fae5a99888bbde8",
-  "timestamp": "2026-08-08T11:47:00.926Z",
+  "timestamp": "2026-08-09T01:36:00.000Z",
   "decision_summary": "Auditing security payload",
   "commit_sha": "7f97135c5cc93b9016ebd408a621519b4a312fb8",
   "branch": "main",
   "lines_added": 30,
   "lines_deleted": 24,
   "diff_sha256": "936a849f40f174bc4c28202ecfd37563337148d15c484577649d38d90980efd8",
-  "affected_files": ["src/api/client.ts", "src/commands/decide.ts"],
   "hmac_signature": "16abaef5c6a6e3c509f39a5e0d49b518c3379863aef1c0b786bc4d3eb15013c5"
 }
 ```
 
 ---
 
-### 3. Recall Recent Context (`anchor context`)
-
-Display recent local architectural decisions to quickly resume work, review branch history, or onboard teammates:
-
-```bash
-anchor context
-```
-
----
-
-### 4. Generate Engineering Impact Standups (`anchor standup`)
-
-Generate a clean markdown summary of recent decision logs and commit history to streamline morning standups and brag docs:
-
-```bash
-anchor standup
-```
-
----
-
-## ⚙️ Configuration File
-
-Configuration and local decision cache are stored inside your home directory:
-
-- **Config Path:** `~/.anchor/config.json`
-- **Local Ledger:** `~/.anchor/ledger.json`
-
-To point the CLI to a custom or self-hosted backend endpoint:
-
-```bash
-export ANCHORGIT_API_URL="[https://api.yourdomain.com/api](https://api.yourdomain.com/api)"
-```
-
----
-
-## 🛠️ Local Development & Contributing
-
-We welcome community contributions! To set up `anchorgit-cli` locally:
-
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/anchorgit/anchorgit-cli.git](https://github.com/anchorgit/anchorgit-cli.git)
-   cd anchorgit-cli
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Build the TypeScript source:**
-   ```bash
-   npm run build
-   ```
-
-4. **Link locally for testing:**
-   ```bash
-   npm link
-   node bin/anchor.js decide "Testing local build" --dry-run
-   ```
-
----
-
 ## 📄 License
 
-Distributed under the **Apache 2.0 License**. See the [`LICENSE`](./LICENSE) file for details.
+Distributed under the **Apache 2.0 License**. See [`LICENSE`](./LICENSE) for details.
