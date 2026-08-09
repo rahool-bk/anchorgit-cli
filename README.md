@@ -67,6 +67,13 @@ anchor decide "Refactored auth token rotation to use Redis instead of in-memory 
 
 ---
 
+### 💡 When to Notarize (`anchor decide`)
+
+Reserve `anchor decide` for high-leverage inflection points:
+
+* **🟢 Do Notarize:** Architectural trade-offs, AI course corrections, security shifts, breaking schema changes.
+* **🔴 Skip:** Typo fixes, CSS tweaks, linting, or routine dependency bumps.
+
 ## 💻 Command Reference
 
 | Command | Usage | Description |
