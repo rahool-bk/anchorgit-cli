@@ -79,28 +79,37 @@ export function getLocalGitStats(): GitStats {
       }
     }
 
-    // 6. List of Affected Files (Scoped to HEAD)
+    // 6. List of Affected Files (Scoped strictly to the latest commit HEAD)
     let affectedFilesRaw = '';
     try {
-      if (hasWorkingTreeChanges) {
-        affectedFilesRaw = execSync('git diff --name-only HEAD', { encoding: 'utf-8' });
-      } else {
-        // Explicitly extract ONLY the files committed in HEAD
-        affectedFilesRaw = execSync('git show --name-only --format="" HEAD', { encoding: 'utf-8' });
-      }
+      // Always inspect the exact files inside HEAD commit first
+      affectedFilesRaw = execSync('git show --name-only --format="" --diff-filter=ACMRT HEAD', { encoding: 'utf-8' });
     } catch {
       affectedFilesRaw = '';
+    }
+
+    // If HEAD diff is empty (e.g., initial empty repo commit), fallback to working tree diff
+    if (!affectedFilesRaw.trim() && hasWorkingTreeChanges) {
+      try {
+        affectedFilesRaw = execSync('git diff --name-only', { encoding: 'utf-8' });
+      } catch {
+        affectedFilesRaw = '';
+      }
     }
 
     const trackedAffectedFiles = affectedFilesRaw
       .split('\n')
       .map((f) => f.trim())
-      .filter(Boolean);
+      .filter((f) => f.length > 0)
+      .filter((f) => {
+        try {
+          return fs.existsSync(f) ? fs.statSync(f).isFile() : true;
+        } catch {
+          return true;
+        }
+      });
 
-    // Filter unique files and eliminate dirty directory remnants
-    const affectedFiles = Array.from(
-      new Set(hasWorkingTreeChanges ? [...trackedAffectedFiles, ...untrackedFiles] : trackedAffectedFiles)
-    );
+    const affectedFiles = Array.from(new Set(trackedAffectedFiles));
 
     // 7. 🔒 MEMORY PURGING & CRYPTOGRAPHIC HASHING
     const fullDiffText = rawDiff + untrackedContent || `${commitSha}:${branch}:${affectedFiles.join(',')}`;
