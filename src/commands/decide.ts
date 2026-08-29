@@ -8,6 +8,8 @@ import { getConfig } from '../core/config.js';
 
 interface DecideOptions {
   dryRun?: boolean;
+  category?: string;
+  deliberationSeconds?: number;
 }
 
 const LEDGER_DIR = path.join(os.homedir(), '.anchor');
@@ -40,17 +42,20 @@ export async function handleDecide(message: string, options: DecideOptions): Pro
   try {
     const gitStats = getLocalGitStats();
     const config = getConfig();
+    const deliberationSeconds = options.deliberationSeconds || 0;
 
     const payload = {
       workstation_guid: config.workstationGuid, // MUST BE INCLUDED
       timestamp: new Date().toISOString(),
       decision_summary: message,
+      category: options.category || 'architecture', // Map category with fallback
       commit_sha: gitStats.commitSha,
       branch: gitStats.branch,
       lines_added: gitStats.linesAdded,
       lines_deleted: gitStats.linesDeleted,
       diff_sha256: gitStats.diffHash,
       affected_files: gitStats.affectedFiles || [],
+      deliberation_seconds: deliberationSeconds,
     };
 
     // Computes HMAC signature dynamically from workstation hardware identity

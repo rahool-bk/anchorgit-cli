@@ -56,10 +56,11 @@ export function getLocalGitStats(): GitStats {
 
     const hasWorkingTreeChanges = rawDiff.trim().length > 0 || untrackedFiles.length > 0;
 
-    // Fallback: Only use HEAD~1 -> HEAD if working tree is completely clean
+    // Fallback: Inspect the latest commit (HEAD) directly if working tree is clean
     if (!hasWorkingTreeChanges) {
       try {
-        rawDiff = execSync('git diff HEAD~1 HEAD', { encoding: 'utf-8' });
+        // Show diff for HEAD commit specifically
+        rawDiff = execSync('git show --format="" HEAD', { encoding: 'utf-8' });
       } catch {
         rawDiff = '';
       }
@@ -78,12 +79,14 @@ export function getLocalGitStats(): GitStats {
       }
     }
 
-    // 6. List of Affected Files
+    // 6. List of Affected Files (Scoped to HEAD)
     let affectedFilesRaw = '';
     try {
-      affectedFilesRaw = execSync('git diff --name-only HEAD', { encoding: 'utf-8' });
-      if (!affectedFilesRaw.trim() && !hasWorkingTreeChanges) {
-        affectedFilesRaw = execSync('git diff --name-only HEAD~1 HEAD', { encoding: 'utf-8' });
+      if (hasWorkingTreeChanges) {
+        affectedFilesRaw = execSync('git diff --name-only HEAD', { encoding: 'utf-8' });
+      } else {
+        // Explicitly extract ONLY the files committed in HEAD
+        affectedFilesRaw = execSync('git show --name-only --format="" HEAD', { encoding: 'utf-8' });
       }
     } catch {
       affectedFilesRaw = '';
@@ -94,13 +97,16 @@ export function getLocalGitStats(): GitStats {
       .map((f) => f.trim())
       .filter(Boolean);
 
-    const affectedFiles = Array.from(new Set([...trackedAffectedFiles, ...untrackedFiles]));
+    // Filter unique files and eliminate dirty directory remnants
+    const affectedFiles = Array.from(
+      new Set(hasWorkingTreeChanges ? [...trackedAffectedFiles, ...untrackedFiles] : trackedAffectedFiles)
+    );
 
     // 7. 🔒 MEMORY PURGING & CRYPTOGRAPHIC HASHING
     const fullDiffText = rawDiff + untrackedContent || `${commitSha}:${branch}:${affectedFiles.join(',')}`;
     const diffBuffer = Buffer.from(fullDiffText, 'utf-8');
 
-    // SHA-256 Checksum over working tree state
+    // SHA-256 Checksum over state
     const diffHash = crypto.createHash('sha256').update(diffBuffer).digest('hex');
 
     // PURGE VOLATILE MEMORY (Patent Claim Requirement)
