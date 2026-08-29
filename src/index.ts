@@ -1,4 +1,4 @@
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import { handleDecide } from './commands/decide.js';
 import { handlePair } from './commands/pair.js';
 import { handleStandup } from './commands/standup.js';
@@ -43,6 +43,17 @@ program
   .argument('<message>', 'Brief summary of why you made this change or what trade-off was accepted')
   .option('--dry-run', 'Print the exact zero-knowledge JSON payload to stdout without sending anywhere')
   .option('-c, --category <type>', 'Category of decision (e.g. architecture, ai-steering, security)', 'architecture')
+  .option('-d, --deliberation <seconds>', 'Deliberation focus time in seconds', '0')
+  .addOption(
+    // Hidden flag consumed by the VS Code extension.
+    // Allows the extension to attest that deliberation_seconds was recorded
+    // passively by the IDE timer, rather than manually declared by the user.
+    // Not shown in --help to keep the user-facing CLI surface clean.
+    new Option(
+      '--source <source>',
+      'Provenance source for deliberation time (set by the VS Code extension)'
+    ).hideHelp()
+  )
   .addHelpText('after', `
     Examples:
       $ anchor decide "Switched session store to Redis cluster for multi-region scale"

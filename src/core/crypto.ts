@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import os from 'node:os';
 import { execSync } from 'node:child_process';
+import type { ProvenanceSource } from './config.js';
 
 /**
  * Extracts native hardware system UUID across operating systems.
@@ -76,6 +77,10 @@ export interface SignaturePayloadInput {
   lines_deleted: number;
   diff_sha256: string;
   timestamp: string;
+  /** Provenance tag — cryptographically bound to the HMAC signature. */
+  deliberation_source: ProvenanceSource;
+  /** Exact seconds recorded by the passive timer or declared by the user. */
+  deliberation_seconds: number;
   affected_files?: string[];
 }
 
@@ -99,6 +104,10 @@ export function computeHmacSignature(payload: SignaturePayloadInput): string {
     payload.diff_sha256,
     payload.decision_summary,
     payload.timestamp,
+    // Provenance tag and duration are part of the signed canonical string.
+    // Changing either field post-sign will invalidate the HMAC.
+    payload.deliberation_source,
+    payload.deliberation_seconds,
   ].join('|');
 
   const canonicalBuffer = Buffer.from(canonicalString, 'utf-8');

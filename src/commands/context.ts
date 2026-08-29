@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import type { ProvenanceSource } from '../core/config.js';
 
 const LEDGER_PATH = path.join(os.homedir(), '.anchor', 'ledger.json');
 
@@ -14,6 +15,26 @@ interface LedgerEntry {
   hmac_signature: string;
   timestamp: string;
   affected_files?: string[];
+  /**
+   * Provenance tag — present on entries written after the provenance flag
+   * feature was introduced. Older entries will have this as undefined.
+   */
+  deliberation_source?: ProvenanceSource;
+}
+
+/**
+ * Returns the dashboard verification badge for a provenance source value.
+ * Handles undefined gracefully for ledger entries written before this feature.
+ */
+function getProvenanceBadge(source?: ProvenanceSource): string {
+  switch (source) {
+    case 'ide_passive_tracker':
+      return '🛡️  Verified Focus';
+    case 'cli_user_declared':
+      return '📝 Self-Declared';
+    default:
+      return '🔹 Unknown';
+  }
 }
 
 export async function handleContext(targetPath?: string) {
@@ -45,8 +66,10 @@ export async function handleContext(targetPath?: string) {
     }
 
     filtered.slice(-5).reverse().forEach(entry => {
+      const badge = getProvenanceBadge(entry.deliberation_source);
       console.log(`   • [${entry.commit_sha.substring(0, 7)}] (${entry.branch}) - ${new Date(entry.timestamp).toLocaleString()}`);
       console.log(`     Intent:    "${entry.decision_summary}"`);
+      console.log(`     Provenance: ${badge}`);
       console.log(`     HMAC Sign: ${entry.hmac_signature.substring(0, 16)}... [Hardware Verified]`);
       console.log(`     Scope:     +${entry.lines_added} / -${entry.lines_deleted} LOC`);
       console.log('─'.repeat(65));
