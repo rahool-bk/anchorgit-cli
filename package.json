@@ -6,6 +6,10 @@
   "bin": {
     "anchor": "bin/anchor.js"
   },
+  "files": [
+    "dist",
+    "bin"
+  ],
   "scripts": {
     "build": "tsc",
     "start": "node bin/anchor.js"

@@ -22,7 +22,7 @@ export async function handlePair(token: string): Promise<void> {
     console.log(`   └─ Endpoint:       ${apiUrl}`);
 
     // 2. Call Rails Backend API
-    const response = await fetch(`${apiUrl}/v1/pair`, {
+    const response = await fetch(`${apiUrl}/api/v1/pair`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

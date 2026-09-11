@@ -1,13 +1,20 @@
 import { getConfig } from '../core/config.js';
+import type { ProvenanceSource } from '../core/config.js';
 
 export interface DecisionPayload {
+  workstation_guid?: string;
   timestamp: string;
   decision_summary: string;
+  category?: string;
+  deliberation_seconds?: number;
+  /** Provenance tag indicating how this decision's deliberation time was recorded. */
+  deliberation_source: ProvenanceSource;
   commit_sha: string;
   branch: string;
   lines_added: number;
   lines_deleted: number;
   diff_sha256: string;
+  hmac_signature?: string;
   affected_files?: string[];
 }
 
@@ -23,16 +30,18 @@ export async function sendDecision(payload: DecisionPayload): Promise<boolean> {
   }
 
   const apiUrl = config.apiUrl || process.env.ANCHORGIT_API_URL || 'https://api.anchorgit.com';
-
   try {
-    const response = await fetch(`${apiUrl}/v1/decide`, {
+    const response = await fetch(`${apiUrl}/api/v1/decide`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${config.apiKey}`,
         'User-Agent': 'AnchorGit-CLI/0.1.0',
       },
-      body: JSON.stringify(payload),
+      // Fix: Wrap payload in the root `decision` key expected by Rails params.require(:decision)
+      body: JSON.stringify({
+        decision: payload
+      }),
     });
 
     if (!response.ok) {

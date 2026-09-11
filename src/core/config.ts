@@ -2,6 +2,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 
+/**
+ * Provenance tag describing how deliberation_seconds was captured.
+ *
+ * - `ide_passive_tracker`  — Set by the VS Code extension; the timer ran
+ *   passively while the developer was active in the IDE window.
+ * - `cli_user_declared`    — Set when the user invokes `anchor decide`
+ *   manually from the terminal and supplies the duration themselves.
+ */
+export type ProvenanceSource = 'ide_passive_tracker' | 'cli_user_declared';
+
 export interface AnchorConfig {
   apiKey?: string;
   apiUrl?: string;
@@ -36,6 +46,20 @@ export function getConfig(): AnchorConfig {
       apiUrl: process.env.ANCHORGIT_API_URL || 'https://api.anchorgit.com',
     };
   }
+}
+
+export function getOrGenerateWorkstationGuid(): string {
+  const config = getConfig();
+  if (config.workstationGuid) {
+    return config.workstationGuid;
+  }
+
+  // Import dynamically or get hardware secret
+  const { getHardwareDerivedSecret } = require('./crypto.js');
+  const hardwareSecret = getHardwareDerivedSecret();
+  const guid = hardwareSecret.toString('hex').substring(0, 32);
+  saveConfig({ workstationGuid: guid });
+  return guid;
 }
 
 export function saveConfig(newConfig: Partial<AnchorConfig>): void {

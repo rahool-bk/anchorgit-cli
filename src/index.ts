@@ -1,10 +1,11 @@
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import { handleDecide } from './commands/decide.js';
 import { handlePair } from './commands/pair.js';
 import { handleStandup } from './commands/standup.js';
 import { handleContext } from './commands/context.js';
 import { handlePr } from './commands/pr.js';
 import { handleWhoami } from './commands/whoami.js';
+import { handleLog } from './commands/log.js';
 
 const program = new Command();
 
@@ -42,6 +43,27 @@ program
   .description('Record the WHY (architectural trade-offs, design choices, or AI steering) for your current code changes')
   .argument('<message>', 'Brief summary of why you made this change or what trade-off was accepted')
   .option('--dry-run', 'Print the exact zero-knowledge JSON payload to stdout without sending anywhere')
+  .option('-c, --category <type>', 'Category of decision (e.g. architecture, ai-steering, security)', 'architecture')
+  .option('-d, --deliberation <seconds>', 'Deliberation focus time in seconds', '0')
+  .addOption(
+    // Hidden flag consumed by the VS Code extension.
+    // Allows the extension to attest that deliberation_seconds was recorded
+    // passively by the IDE timer, rather than manually declared by the user.
+    // Not shown in --help to keep the user-facing CLI surface clean.
+    new Option(
+      '--source <source>',
+      'Provenance source for deliberation time (set by the VS Code extension)'
+    ).hideHelp()
+  )
+  .addHelpText('after', `
+    Examples:
+      $ anchor decide "Switched session store to Redis cluster for multi-region scale"
+      $ anchor decide "Overrode LLM recommendation to use raw SQL for 10x throughput"
+
+    💡 When to Notarize:
+      • DO: Architectural trade-offs, AI course corrections, security shifts, breaking schema changes.
+      • SKIP: Typo fixes, CSS tweaks, linting, or routine dependency updates.
+    `)
   .action((message, options) => {
     handleDecide(message, options);
   });
@@ -65,6 +87,13 @@ program
   .description('Generate a 24-hour engineering impact summary from signed decision logs')
   .action(() => {
     handleStandup();
+  });
+
+program
+  .command('log')
+  .description('Display formatted decision ledger history')
+  .action(() => {
+    handleLog();
   });
 
 program
