@@ -11,6 +11,15 @@ export interface GitStats {
   affectedFiles: string[];
 }
 
+export function isGitRepository(): boolean {
+  try {
+    const res = execSync('git rev-parse --is-inside-work-tree', { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'ignore'] });
+    return res.trim() === 'true';
+  } catch {
+    return false;
+  }
+}
+
 export function getLocalGitStats(): GitStats {
   try {
     // 1. Current Branch & Commit SHA

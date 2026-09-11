@@ -48,6 +48,20 @@ export function getConfig(): AnchorConfig {
   }
 }
 
+export function getOrGenerateWorkstationGuid(): string {
+  const config = getConfig();
+  if (config.workstationGuid) {
+    return config.workstationGuid;
+  }
+
+  // Import dynamically or get hardware secret
+  const { getHardwareDerivedSecret } = require('./crypto.js');
+  const hardwareSecret = getHardwareDerivedSecret();
+  const guid = hardwareSecret.toString('hex').substring(0, 32);
+  saveConfig({ workstationGuid: guid });
+  return guid;
+}
+
 export function saveConfig(newConfig: Partial<AnchorConfig>): void {
   try {
     if (!fs.existsSync(CONFIG_DIR)) {

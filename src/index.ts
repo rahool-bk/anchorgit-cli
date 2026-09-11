@@ -5,6 +5,7 @@ import { handleStandup } from './commands/standup.js';
 import { handleContext } from './commands/context.js';
 import { handlePr } from './commands/pr.js';
 import { handleWhoami } from './commands/whoami.js';
+import { handleLog } from './commands/log.js';
 
 const program = new Command();
 
@@ -86,6 +87,13 @@ program
   .description('Generate a 24-hour engineering impact summary from signed decision logs')
   .action(() => {
     handleStandup();
+  });
+
+program
+  .command('log')
+  .description('Display formatted decision ledger history')
+  .action(() => {
+    handleLog();
   });
 
 program

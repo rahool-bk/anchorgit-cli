@@ -1,10 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { getLocalGitStats } from '../core/git.js';
+import { randomUUID } from 'node:crypto';
+import { getLocalGitStats, isGitRepository } from '../core/git.js';
 import { sendDecision } from '../api/client.js';
 import { computeHmacSignature } from '../core/crypto.js';
-import { getConfig } from '../core/config.js';
+import { getConfig, getOrGenerateWorkstationGuid } from '../core/config.js';
 import type { ProvenanceSource } from '../core/config.js';
 
 interface DecideOptions {
@@ -62,8 +63,14 @@ function saveToLocalLedger(entry: any): void {
 
 export async function handleDecide(message: string, options: DecideOptions): Promise<void> {
   try {
+    if (!isGitRepository()) {
+      console.error('❌ Error: Not inside a valid Git repository.');
+      process.exit(1);
+    }
+
     const gitStats = getLocalGitStats();
     const config = getConfig();
+    const workstationGuid = config.workstationGuid || getOrGenerateWorkstationGuid();
     const rawDeliberation = options.deliberationSeconds ?? (options as any).deliberation ?? 0;
     const deliberationSeconds = typeof rawDeliberation === 'string' ? parseInt(rawDeliberation, 10) : rawDeliberation;
 
@@ -72,7 +79,8 @@ export async function handleDecide(message: string, options: DecideOptions): Pro
     const deliberationSource: ProvenanceSource = options.source ?? 'cli_user_declared';
 
     const payload = {
-      workstation_guid: config.workstationGuid, // MUST BE INCLUDED
+      id: randomUUID(),
+      workstation_guid: workstationGuid, // MUST BE INCLUDED
       timestamp: new Date().toISOString(),
       decision_summary: message,
       category: options.category || 'architecture',
