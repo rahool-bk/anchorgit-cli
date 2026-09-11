@@ -1,19 +1,30 @@
 {
-  "name": "anchorgit",
+  "name": "anchorgit-cli",
   "version": "0.1.0",
   "description": "Cryptographic decision logging and human steering for Git.",
   "main": "dist/index.js",
   "bin": {
-    "anchor": "bin/anchor.js"
+    "anchor": "dist/index.js"
   },
   "files": [
-    "dist",
-    "bin"
+    "dist"
   ],
   "scripts": {
     "build": "tsc",
-    "start": "node bin/anchor.js"
+    "prepublishOnly": "npm run build"
   },
+  "homepage": "https://anchorgit.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rahool-bk/anchorgit-cli.git"
+  },
+  "keywords": [
+    "git",
+    "cli",
+    "developer-tools",
+    "ai-governance",
+    "architecture-decision-records"
+  ],
   "license": "Apache-2.0",
   "dependencies": {
     "commander": "^12.1.0"
