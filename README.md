@@ -80,8 +80,19 @@ Reserve `anchor decide` for high-leverage inflection points:
 | :--- | :--- | :--- |
 | **`pair`** | `anchor pair <api-key>` | Binds workstation hardware fingerprint & persists API credentials. |
 | **`decide`** | `anchor decide "<message>"` | Hashes local diffs, signs payload via hardware HMAC, and syncs log. |
-| **`context`** | `anchor context` | Displays recent local architectural decisions to resume context. |
-| **`standup`** | `anchor standup` | Compiles recent decisions into a clean Markdown daily standup report. |
+| **`log`** | `anchor log` | Displays formatted local decision ledger history. |
+| **`context`** | `anchor context [path]` | Displays recent architectural decisions for a file or project. |
+| **`pr`** | `anchor pr` | Generates a Markdown Pull Request Decision Brief for reviewers. |
+| **`standup`** | `anchor standup` | Compiles recent decisions into a clean daily standup report. |
+| **`whoami`** | `anchor whoami` | Displays currently paired developer identity and public profile link. |
+
+---
+
+### 🎛️ `anchor decide` Options
+
+* `-c, --category <type>` — Category of decision (e.g. `architecture`, `ai-steering`, `security`; default: `architecture`).
+* `-d, --deliberation <seconds>` — Deliberation focus time in seconds (default: `0`).
+* `--dry-run` — Print the exact zero-knowledge JSON payload to stdout without sending.
 
 ---
 
@@ -100,14 +111,21 @@ anchor decide "Auditing security payload" --dry-run
 
 ```json
 {
+  "id": "4a4303c8-925d-4206-a691-1194ea140874",
   "workstation_guid": "7bfd571acc9886bc3fae5a99888bbde8",
-  "timestamp": "2026-08-09T01:36:00.000Z",
+  "timestamp": "2026-09-11T06:51:11.439Z",
   "decision_summary": "Auditing security payload",
+  "category": "architecture",
   "commit_sha": "7f97135c5cc93b9016ebd408a621519b4a312fb8",
   "branch": "main",
   "lines_added": 30,
   "lines_deleted": 24,
   "diff_sha256": "936a849f40f174bc4c28202ecfd37563337148d15c484577649d38d90980efd8",
+  "affected_files": [
+    "src/index.ts"
+  ],
+  "deliberation_seconds": 0,
+  "deliberation_source": "cli_user_declared",
   "hmac_signature": "16abaef5c6a6e3c509f39a5e0d49b518c3379863aef1c0b786bc4d3eb15013c5"
 }
 ```
