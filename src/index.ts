@@ -31,10 +31,9 @@ program
 `);
 
 program
-  .command('pair')
-  .description('Link this workstation with your AnchorGit team dashboard using an API key')
-  .argument('<token>', 'API key or pairing token from anchorgit.com')
-  .action((token) => {
+  .command('pair [token]')
+  .description('Pair workstation locally or with AnchorGit Cloud')
+  .action((token?: string) => {
     handlePair(token);
   });
 

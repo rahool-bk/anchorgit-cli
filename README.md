@@ -6,7 +6,8 @@
 
 <p align="center">
   <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License"></a>
-  <a href="https://www.npmjs.com/package/anchorgit"><img src="https://img.shields.io/badge/npm-v1.0.0-emerald.svg" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/anchorgit-cli"><img src="https://img.shields.io/badge/npm-v1.0.0-emerald.svg" alt="npm version"></a>
+
   <a href="https://node.js.org"><img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg" alt="Node.js"></a>
 </p>
 
@@ -19,14 +20,15 @@ AI writes code at lightspeed. **AnchorGit proves why you built it.**
 Git records *what* changed in your source code. AnchorGit notarizes *why* it changed—attaching verifiable trade-off rationale, architectural intent, and hardware-bound HMAC signatures to your commits **without ever exposing your raw source code**.
 
 ```
-   ┌────────────────┐       ┌────────────────────┐       ┌──────────────────────┐
-   │ Local Git Diff │ ───►  │ Local SHA-256 Hash │ ───►  │ Hardware HMAC Sign   │
-   └────────────────┘       └────────────────────┘       └──────────┬───────────┘
-                                                                    │
-                                   Zero Source Code Transmitted     ▼
-                                                         ┌──────────────────────┐
-                                                         │ Cloud Decision Log   │
-                                                         └──────────────────────┘
++------------------+       +----------------------+       +-----------------------+
+| Local Git Diff   | --->  | Local SHA-256 Hash   | --->  | Hardware HMAC Sign    |
++------------------+       +----------------------+       +-----------+-----------+
+                                                                      |
+                                    Zero Source Code Transmitted      v
+                                                          +-----------------------+
+                                                          | Local Decision Log    |
+                                                          | ~/.anchor/ledger.json |
+                                                          +-----------------------+
 ```
 
 ---
@@ -38,7 +40,7 @@ Git records *what* changed in your source code. AnchorGit notarizes *why* it cha
 Install globally using `npm`:
 
 ```bash
-npm install -g anchorgit
+npm install -g anchorgit-cli
 ```
 
 Or run directly with `npx`:
@@ -49,10 +51,16 @@ npx anchorgit --help
 
 ### 2. Pair Your Workstation
 
-Authenticate your local CLI with your AnchorGit developer dashboard using your personal API key:
+To initialize your local workstation identity, run the following command:
 
 ```bash
-anchor pair <YOUR_API_KEY>
+anchor pair
+```
+
+Or use your API Key (when Web Studio is connected)
+
+```bash
+anchor pair YOUR_API_KEY
 ```
 
 This derives a local hardware fingerprint, generates a secure salt, and persists config locally to `~/.anchor/config.json`.
@@ -78,7 +86,7 @@ Reserve `anchor decide` for high-leverage inflection points:
 
 | Command | Usage | Description |
 | :--- | :--- | :--- |
-| **`pair`** | `anchor pair <api-key>` | Binds workstation hardware fingerprint & persists API credentials. |
+| **`pair`** | `anchor pair [api-key]` | Binds workstation hardware fingerprint locally or persists API credentials. |
 | **`decide`** | `anchor decide "<message>"` | Hashes local diffs, signs payload via hardware HMAC, and syncs log. |
 | **`log`** | `anchor log` | Displays formatted local decision ledger history. |
 | **`context`** | `anchor context [path]` | Displays recent architectural decisions for a file or project. |
@@ -131,7 +139,21 @@ anchor decide "Auditing security payload" --dry-run
 ```
 
 ---
+### 🚀 Roadmap: AnchorGit Web Studio & Team Sync
+The anchorgit-cli is intentionally local-first and 100% functional offline using ~/.anchor/ledger.json.
 
-## 📄 License
+We are actively building the AnchorGit Web Studio (anchorgit.com) to bring team-level capabilities:
 
-Distributed under the **Apache 2.0 License**. See [`LICENSE`](./LICENSE) for details.
+Automated Cloud Sync: Background synchronization of local ledger.json entries to team dashboards.
+
+Hardware-Bound Verification: Visual cryptographic proof cards and tamper-detection badges for SOC 2 audits.
+
+Temporal Knowledge Graph: Interactive visual maps showing how architectural decisions evolve across branches and repositories.
+
+---
+
+### ⚖️ Patent & License
+
+**Patent Status:** Patent Pending (Application No. 202621068620)
+
+**License:** Distributed under the Apache 2.0 License.
