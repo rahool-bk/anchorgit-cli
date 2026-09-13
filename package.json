@@ -4,10 +4,11 @@
   "description": "Cryptographic decision logging and human steering for Git.",
   "main": "dist/index.js",
   "bin": {
-    "anchor": "dist/index.js"
+    "anchor": "bin/anchor.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "bin"
   ],
   "scripts": {
     "build": "tsc",

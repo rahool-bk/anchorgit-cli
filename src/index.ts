@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { Command, Option } from 'commander';
 import { handleDecide } from './commands/decide.js';
 import { handlePair } from './commands/pair.js';
