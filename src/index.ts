@@ -7,13 +7,14 @@ import { handleContext } from './commands/context.js';
 import { handlePr } from './commands/pr.js';
 import { handleWhoami } from './commands/whoami.js';
 import { handleLog } from './commands/log.js';
+import { version } from '../package.json';
 
 const program = new Command();
 
 program
   .name('anchor')
   .description('AnchorGit - Zero-Knowledge Decision Ledger for Developers (Open Source)')
-  .version('0.1.0')
+  .version(version)
   .addHelpText('after', `
 
 💡 How & When to Use AnchorGit in your Daily Workflow:
