@@ -1,6 +1,6 @@
 {
   "name": "anchorgit-cli",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Cryptographic decision logging and human steering for Git.",
   "main": "dist/index.js",
   "bin": {
