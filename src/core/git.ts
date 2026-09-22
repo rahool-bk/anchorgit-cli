@@ -88,19 +88,20 @@ export function getLocalGitStats(): GitStats {
       }
     }
 
-    // 6. List of Affected Files (Scoped strictly to the latest commit HEAD)
+    // 6. List of Affected Files
     let affectedFilesRaw = '';
-    try {
-      // Always inspect the exact files inside HEAD commit first
-      affectedFilesRaw = execSync('git show --name-only --format="" --diff-filter=ACMRT HEAD', { encoding: 'utf-8' });
-    } catch {
-      affectedFilesRaw = '';
-    }
 
-    // If HEAD diff is empty (e.g., initial empty repo commit), fallback to working tree diff
-    if (!affectedFilesRaw.trim() && hasWorkingTreeChanges) {
+    if (hasWorkingTreeChanges) {
+      // Priority A: Gather staged + unstaged files from working tree
       try {
-        affectedFilesRaw = execSync('git diff --name-only', { encoding: 'utf-8' });
+        affectedFilesRaw = execSync('git diff HEAD --name-only', { encoding: 'utf-8' });
+      } catch {
+        affectedFilesRaw = '';
+      }
+    } else {
+      // Priority B: Working tree is clean, inspect files modified in HEAD commit
+      try {
+        affectedFilesRaw = execSync('git show --name-only --format="" --diff-filter=ACMRT HEAD', { encoding: 'utf-8' });
       } catch {
         affectedFilesRaw = '';
       }
@@ -109,16 +110,18 @@ export function getLocalGitStats(): GitStats {
     const trackedAffectedFiles = affectedFilesRaw
       .split('\n')
       .map((f) => f.trim())
-      .filter((f) => f.length > 0)
-      .filter((f) => {
-        try {
-          return fs.existsSync(f) ? fs.statSync(f).isFile() : true;
-        } catch {
-          return true;
-        }
-      });
+      .filter((f) => f.length > 0);
 
-    const affectedFiles = Array.from(new Set(trackedAffectedFiles));
+    // Merge tracked changes with untracked files and remove duplicates
+    const allFiles = [...trackedAffectedFiles, ...untrackedFiles].filter((f) => {
+      try {
+        return fs.existsSync(f) ? fs.statSync(f).isFile() : true;
+      } catch {
+        return true;
+      }
+    });
+
+    const affectedFiles = Array.from(new Set(allFiles));
 
     // 7. 🔒 MEMORY PURGING & CRYPTOGRAPHIC HASHING
     const fullDiffText = rawDiff + untrackedContent || `${commitSha}:${branch}:${affectedFiles.join(',')}`;
