@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License"></a>
-  <a href="https://www.npmjs.com/package/anchorgit-cli"><img src="https://img.shields.io/badge/npm-v1.0.0-emerald.svg" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/anchorgit-cli"><img src="https://img.shields.io/badge/npm-v0.1.4-emerald.svg" alt="npm version"></a>
 
   <a href="https://node.js.org"><img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg" alt="Node.js"></a>
 </p>
@@ -20,15 +20,7 @@ AI writes code at lightspeed. **AnchorGit proves why you built it.**
 Git records *what* changed in your source code. AnchorGit notarizes *why* it changed—attaching verifiable trade-off rationale, architectural intent, and hardware-bound HMAC signatures to your commits **without ever exposing your raw source code**.
 
 ```
-+------------------+       +----------------------+       +-----------------------+
-| Local Git Diff   | --->  | Local SHA-256 Hash   | --->  | Hardware HMAC Sign    |
-+------------------+       +----------------------+       +-----------+-----------+
-                                                                      |
-                                    Zero Source Code Transmitted      v
-                                                          +-----------------------+
-                                                          | Local Decision Log    |
-                                                          | ~/.anchor/ledger.json |
-                                                          +-----------------------+
+Local Git Diff ---> Local SHA-256 Hash ---> Hardware HMAC Sign ---> Local Ledger (~/.anchor/ledger.json)
 ```
 
 ---
